@@ -19,7 +19,7 @@ ArticleTuple = tuple[ArticlePostDate, ArticleTitle, ArticleTags, ArticleUrl]
 class SubstackArchivesDownloader(PDFDownloader):
     element_selectors: dict[str, Union[str, tuple]] = {
         # elements used in sign-in
-        'get_to_sign_in_page_css': 'button.button.sign-in-link.outline-grayscale',
+        'get_to_sign_in_page_css': 'button[data-href*="sign-in"]',
         'sign_in_button_css': '.button',
         'go_to_login_link_text': 'Log in',
         'log_in_with_password_link_text': 'Sign in with password',
@@ -71,7 +71,7 @@ class SubstackArchivesDownloader(PDFDownloader):
 
     def _navigate_to_sign_in_page(self):
         self._driver.get(self._url_cache.get_archive_url())
-        sign_in_button = self._driver.find_element_by_css_selector(self.element_selectors['get_to_sign_in_page_css'])
+        sign_in_button = self._driver.find_element(By.CSS_SELECTOR, self.element_selectors['get_to_sign_in_page_css'])
         sign_in_button.click()
         sign_in_url = self._driver.current_url
         substack_subdomain = SubstackArchivesDownloader.extract_substack_subdomain(sign_in_url)
@@ -83,7 +83,7 @@ class SubstackArchivesDownloader(PDFDownloader):
         if not loaded_successfully:
             raise exceptions.ErrorWhileLoggingIn("clicking go_to_login_button")
 
-        log_in_with_password_button = self._driver.find_element_by_link_text(
+        log_in_with_password_button = self._driver.find_element(By.LINK_TEXT,
             self.element_selectors['log_in_with_password_link_text'])
         log_in_with_password_button.click()
 
@@ -92,11 +92,11 @@ class SubstackArchivesDownloader(PDFDownloader):
             raise exceptions.ErrorWhileLoggingIn("clicking log_in_with_password_button")
 
         username, password = self._user_credential.get_credential()
-        username_field = self._driver.find_element_by_xpath(self.element_selectors['username_field_xpath'])
+        username_field = self._driver.find_element(By.XPATH, self.element_selectors['username_field_xpath'])
         username_field.send_keys(username)
-        password_field = self._driver.find_element_by_xpath(self.element_selectors['password_field_xpath'])
+        password_field = self._driver.find_element(By.XPATH, self.element_selectors['password_field_xpath'])
         password_field.send_keys(password)
-        submit_button = self._driver.find_element_by_xpath(self.element_selectors['submit_button_xpath'])
+        submit_button = self._driver.find_element(By.XPATH, self.element_selectors['submit_button_xpath'])
         submit_button.click()
         self._signed_in = True
 
@@ -151,8 +151,9 @@ class SubstackArchivesDownloader(PDFDownloader):
                 converted_date = SubstackArchivesDownloader.convert_json_date_to_yyyymmdd(post_date)
                 title = json_dict['title']
                 tags = []
-                for tag in json_dict['postTags']:
-                    tags.append(tag['slug'])                    
+                if 'postTags' in json_dict and json_dict['postTags']:
+                    for tag in json_dict['postTags']:
+                        tags.append(tag['slug'])                    
                 converted_tags = SubstackArchivesDownloader.convert_tags_to_string(tags)
                 canonical_url = json_dict['canonical_url']
                 self._url_cache.append_article_tuple(converted_date, title, converted_tags, canonical_url)
@@ -193,8 +194,9 @@ class SubstackArchivesDownloader(PDFDownloader):
                 if start_date <= converted_date <= end_date:
                     title = json_dict['title']
                     tags = []
-                    for tag in json_dict['postTags']:
-                        tags.append(tag['slug'])                    
+                    if 'postTags' in json_dict and json_dict['postTags']:
+                        for tag in json_dict['postTags']:
+                            tags.append(tag['slug'])                    
                     converted_tags = SubstackArchivesDownloader.convert_tags_to_string(tags)
                     canonical_url = json_dict['canonical_url']
                     self._url_cache.append_article_tuple(converted_date, title, converted_tags, canonical_url)
@@ -221,7 +223,10 @@ class SubstackArchivesDownloader(PDFDownloader):
 
     @staticmethod
     def convert_json_date_to_yyyymmdd(post_date: str) -> int:
-        return int(datetime.strptime(post_date, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y%m%d'))
+        # Substack post_date is typically ISO 8601 like '2025-12-24T10:00:22.020Z'
+        # or '2025-12-24T10:00:22Z'
+        dt = datetime.fromisoformat(post_date.replace('Z', '+00:00'))
+        return int(dt.strftime('%Y%m%d'))
 
     @staticmethod
     def convert_tags_to_string(tags: []):

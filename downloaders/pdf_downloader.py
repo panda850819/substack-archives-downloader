@@ -6,6 +6,7 @@ import random
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
@@ -52,7 +53,8 @@ class PDFDownloader:
             chrome_options.add_experimental_option('prefs', profile)
             chrome_options.add_argument('--kiosk-printing')
 
-        return webdriver.Chrome(options=chrome_options, executable_path=ChromeDriverManager().install())
+        service = Service(executable_path=ChromeDriverManager().install())
+        return webdriver.Chrome(options=chrome_options, service=service)
 
     def shut_down(self):
         if not self._is_headless:
