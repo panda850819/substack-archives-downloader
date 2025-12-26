@@ -4,20 +4,68 @@ You just paid for a Substack subscription to your favorite author and would like
 
 This program uses Selenium to fire up a browser, log into the user-provided Substack account, and download articles as PDF files. Users can choose to download articles falling within a certain date range or to download a user-specified number of most recently published articles.
 
-## Quick Start
+## 2025 Updates (2025 更新)
+
+- **Selenium 4 Upgrade (升級 Selenium 4)**: Codebase upgraded to support Selenium 4 for better compatibility with modern browsers.
+  - 程式碼已升級支援 Selenium 4，以相容現代瀏覽器。
+- **Login Fix (修復登入)**: Updated CSS selectors to match the new Substack login page structure.
+  - 更新了 CSS 選擇器以符合 Substack 新版登入頁面結構。
+- **Environment Support (支援環境變數)**: Added `.env` file support to store credentials and settings, avoiding repeated manual input.
+  - 新增 `.env` 檔案支援，可儲存帳號密碼與設定，無需每次手動輸入。
+- **Bug Fixes (錯誤修復)**: Improved date parsing for ISO 8601 formats and safe handling of missing article tags.
+  - 改進了 ISO 8601 日期格式的解析，並修復了文章標籤缺失導致的錯誤。
+
+## Quick Start (快速開始)
 
 1. Ensure you have [uv](https://docs.astral.sh/uv/getting-started/installation/) installed.
 2. Run the program:
    ```bash
    uv run main.py
    ```
-3. Follow the instructions shown in the command line.
+3. Follow the instructions shown in the command line or use `.env` for auto-configuration.
 
 > Note: ChromeDriver is now managed automatically, so no need to download it manually.
 
+## Configuration via .env (使用 .env 配置)
+
+To avoid entering your credentials every time, create a `.env` file in the project root:
+為了避免每次輸入憑證，請在專案根目錄建立 `.env` 檔案：
+
+```env
+# Substack Newsletter URL (您要下載的 Substack 網址)
+SUBSTACK_URL=https://newsletter.example.com
+
+# Login Credentials (您的登入資訊)
+SUBSTACK_EMAIL=your_email@example.com
+SUBSTACK_PASSWORD=your_password
+
+# Browser Settings (瀏覽器設定)
+# Set to 'true' to run in background (不顯示瀏覽器), 'false' to see the browser (顯示瀏覽器)
+HEADLESS=false
+
+# Download Settings (下載設定)
+# 'true' or 'false' (是否下載 Podcast)
+DOWNLOAD_PODCASTS=false
+
+# Download Mode (下載模式)
+# Options: 'date_range' (日期範圍) or 'count' (最新 N 篇)
+DOWNLOAD_MODE=count
+
+# For 'date_range' mode (Format: YYYYMMDD) (日期範圍模式設定)
+DATE_START=20230101
+DATE_END=20231231
+
+# For 'count' mode (Number of most recent articles) (最新 N 篇模式設定)
+MOST_RECENT_K=5
+```
 
 ## Changelog
 
+- December 2025
+  - Upgrade to Selenium 4
+  - Fix login selectors
+  - Add .env support
+  - Fix date and tag parsing bugs
 - May 2022
   - Modify element selectors due to new Substack sign-in UX
 - February 2022
